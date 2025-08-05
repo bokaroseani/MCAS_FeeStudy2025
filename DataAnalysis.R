@@ -55,6 +55,7 @@ feesCollected$Amount <- gsub("^\\((.*)\\)$", "-\\1", feesCollected$Amount)
 feesCollected$Amount <- as.numeric(feesCollected$Amount)
 
 ### Remove the $25000 that was yearly paid out as "50220:Licenses & Fees" with the Header Memo saying "Revenue Transfer per Resolution 2010-098".
+### $25,000 is a portion of the license fee revenue retained in the the restricted accounts, per County Resolution 2010-098. 
 feesCollected <- subset(feesCollected, feesCollected$Amount != 25000)
 
 names(feesCollected)
@@ -119,6 +120,26 @@ ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount))
 
 
 
+
+
+
+temp <- feesCollected %>%
+  group_by(Ledger.Account) %>%
+  summarise(
+    Total.Amount = -1*sum(Amount, na.rm = TRUE)
+  )
+
+
+
+# What are the Revenue.Categories under Ledger.Account == "50235:Charges for Services"? They are only in FY21, and FY22.
+serviceCharges <- subset(feesCollected, feesCollected$Ledger.Account == "50235:Charges for Services")
+summary(as.factor(serviceCharges$Revenue.Category)) 
+
+donations <- subset(feesCollected, feesCollected$Ledger.Account == "50300:Donations, Restricted, Operating") # These are only in FY21, 22 and 23.
+summary(as.factor(donations$Revenue.Category))
+
+punitive <- subset(feesCollected, feesCollected$Ledger.Account == "50280:Fines and Forfeitures") # Fines issued by Field Officers and Clients.
+summary(as.factor(punitive$Revenue.Category))
 
 
 
