@@ -341,6 +341,413 @@ ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount))
 
 
 
+# Fines From NOI's - Issued By Field
+temp <- subset(feesCollected, feesCollected$Revenue.Category == "04400015 - DCS Fines From NOI's - Issued By Field")
+summary(temp$Amount)
+temp1 <- as.data.frame(summary(as.factor(temp$Amount[temp$Fiscal.Year == "FY25"])))
+
+top_20_amounts <- temp |>
+  filter(Fiscal.Year == "FY25") |> 
+  count(Amount, sort = TRUE) |> # Count occurrences for each amount and sort descending
+  slice_head(n = 20)
+
+ggplot(temp, aes(Amount)) +
+  geom_histogram(aes(fill = Fiscal.Year), binwidth = 20) +
+  labs(title = "Distribution of Dollar Amount of Fines from NOI's (Field) collected across 5 years")
+
+yearly_summary <- temp %>%
+  group_by(Fiscal.Year) %>%
+  summarise(
+    Total.Amount = sum(Amount, na.rm = TRUE),
+    Count = n(), 
+    Amount_per_transaction = Total.Amount/Count
+  )
+
+
+ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount)) +
+  geom_col() +
+  geom_text(aes(label = paste0("N = ", Count), vjust = -0.5)) +
+  labs(
+    title = "Total Fines from NOI's (Field) Collected by Fiscal Year",
+    x = "Fiscal Year",
+    y = "Total Amount Collected ($)"
+  ) +
+  scale_y_continuous(labels = label_dollar()) 
+
+
+
+
+# 04400010 - DCS Fines From NOI's - Issued By Client
+temp <- subset(feesCollected, feesCollected$Revenue.Category == "04400010 - DCS Fines From NOI's - Issued By Client")
+summary(temp$Amount)
+temp1 <- as.data.frame(summary(as.factor(temp$Amount[temp$Fiscal.Year == "FY25"])))
+
+top_20_amounts <- temp |>
+  filter(Fiscal.Year == "FY25") |> 
+  count(Amount, sort = TRUE) |> # Count occurrences for each amount and sort descending
+  slice_head(n = 20)
+
+ggplot(temp, aes(Amount)) +
+  geom_histogram(aes(fill = Fiscal.Year), binwidth = 20) +
+  labs(title = "Distribution of Dollar Amount of Fines from NOI's (Client) collected across 5 years")
+
+yearly_summary <- temp %>%
+  group_by(Fiscal.Year) %>%
+  summarise(
+    Total.Amount = sum(Amount, na.rm = TRUE),
+    Count = n(), 
+    Amount_per_transaction = Total.Amount/Count
+  )
+
+
+ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount)) +
+  geom_col() +
+  geom_text(aes(label = paste0("N = ", Count), vjust = -0.5)) +
+  labs(
+    title = "Total Fines from NOI's (Client) Collected by Fiscal Year",
+    x = "Fiscal Year",
+    y = "Total Amount Collected ($)"
+  ) +
+  scale_y_continuous(labels = label_dollar()) 
+
+
+
+
+# 	02200070 - DCS Euthanasia Fees, Disposal Fees
+temp <- subset(feesCollected, feesCollected$Revenue.Category == "02200070 - DCS Euthanasia Fees, Disposal Fees")
+summary(temp$Amount)
+temp1 <- as.data.frame(summary(as.factor(temp$Amount[temp$Fiscal.Year == "FY25"])))
+
+top_20_amounts <- temp |>
+  filter(Fiscal.Year == "FY25") |> 
+  count(Amount, sort = TRUE) |> # Count occurrences for each amount and sort descending
+  slice_head(n = 20)
+
+ggplot(temp, aes(Amount)) +
+  geom_histogram(aes(fill = Fiscal.Year), binwidth = 20) +
+  labs(title = "Distribution of Dollar Amount of Euthanasia and Disposal Fees collected across 5 years")
+
+yearly_summary <- temp %>%
+  group_by(Fiscal.Year) %>%
+  summarise(
+    Total.Amount = sum(Amount, na.rm = TRUE),
+    Count = n(), 
+    Amount_per_transaction = Total.Amount/Count
+  )
+
+
+ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount)) +
+  geom_col() +
+  geom_text(aes(label = paste0("N = ", Count), vjust = -0.5)) +
+  labs(
+    title = "Total Euthanasia and Disposal Fees Collected by Fiscal Year",
+    x = "Fiscal Year",
+    y = "Total Amount Collected ($)"
+  ) +
+  scale_y_continuous(labels = label_dollar()) 
+
+
+# 02200015 - DCS Owner Surrender Fees
+temp <- subset(feesCollected, feesCollected$Revenue.Category == "02200015 - DCS Owner Surrender Fees")
+summary(temp$Amount)
+temp1 <- as.data.frame(summary(as.factor(temp$Amount[temp$Fiscal.Year == "FY25"])))
+
+top_20_amounts <- temp |>
+  filter(Fiscal.Year == "FY25") |> 
+  count(Amount, sort = TRUE) |> # Count occurrences for each amount and sort descending
+  slice_head(n = 20)
+
+ggplot(temp, aes(Amount)) +
+  geom_histogram(aes(fill = Fiscal.Year), binwidth = 20) +
+  labs(title = "Distribution of Dollar Amount of Owner Surrender Fees collected across 5 years")
+
+yearly_summary <- temp %>%
+  group_by(Fiscal.Year) %>%
+  summarise(
+    Total.Amount = sum(Amount, na.rm = TRUE),
+    Count = n(), 
+    Amount_per_transaction = Total.Amount/Count
+  )
+
+
+ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount)) +
+  geom_col() +
+  geom_text(aes(label = paste0("N = ", Count), vjust = -0.5)) +
+  labs(
+    title = "Total Owner Surrender Fees Collected by Fiscal Year",
+    x = "Fiscal Year",
+    y = "Total Amount Collected ($)"
+  ) +
+  scale_y_continuous(labels = label_dollar()) 
+
+# 02200065 - DCS Vet Fees
+temp <- subset(feesCollected, feesCollected$Revenue.Category == "02200065 - DCS Vet Fees")
+summary(temp$Amount)
+temp1 <- as.data.frame(summary(as.factor(temp$Amount[temp$Fiscal.Year == "FY25"])))
+
+top_20_amounts <- temp |>
+  filter(Fiscal.Year == "FY25") |> 
+  count(Amount, sort = TRUE) |> # Count occurrences for each amount and sort descending
+  slice_head(n = 20)
+
+ggplot(temp, aes(Amount)) +
+  geom_histogram(aes(fill = Fiscal.Year), binwidth = 20) +
+  labs(title = "Distribution of Dollar Amount of Vet Fees collected across 5 years")
+
+yearly_summary <- temp %>%
+  group_by(Fiscal.Year) %>%
+  summarise(
+    Total.Amount = sum(Amount, na.rm = TRUE),
+    Count = n(), 
+    Amount_per_transaction = Total.Amount/Count
+  )
+
+
+ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount)) +
+  geom_col() +
+  geom_text(aes(label = paste0("N = ", Count), vjust = -0.5)) +
+  labs(
+    title = "Total Vet Fees Collected by Fiscal Year",
+    x = "Fiscal Year",
+    y = "Total Amount Collected ($)"
+  ) +
+  scale_y_continuous(labels = label_dollar()) 
+
+# 02200055 - DCS Appeal Fees, Appeal Board Fees, Court Board Fees
+temp <- subset(feesCollected, feesCollected$Revenue.Category == "02200055 - DCS Appeal Fees, Appeal Board Fees, Court Board Fees")
+summary(temp$Amount)
+temp1 <- as.data.frame(summary(as.factor(temp$Amount[temp$Fiscal.Year == "FY25"])))
+
+top_20_amounts <- temp |>
+  filter(Fiscal.Year == "FY25") |> 
+  count(Amount, sort = TRUE) |> # Count occurrences for each amount and sort descending
+  slice_head(n = 20)
+
+ggplot(temp, aes(Amount)) +
+  geom_histogram(aes(fill = Fiscal.Year), binwidth = 20) +
+  labs(title = "Distribution of Dollar Amount of Appeal Fees, Appeal Board, Court Board Fees collected across 5 years")
+
+yearly_summary <- temp %>%
+  group_by(Fiscal.Year) %>%
+  summarise(
+    Total.Amount = sum(Amount, na.rm = TRUE),
+    Count = n(), 
+    Amount_per_transaction = Total.Amount/Count
+  )
+
+
+ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount)) +
+  geom_col() +
+  geom_text(aes(label = paste0("N = ", Count), vjust = -0.5)) +
+  labs(
+    title = "Total Appeal Fees, Appeal Board, Court Board Fees Collected by Fiscal Year",
+    x = "Fiscal Year",
+    y = "Total Amount Collected ($)"
+  ) +
+  scale_y_continuous(labels = label_dollar()) 
+
+# 03000025 - DCS Spay and Save Fees
+temp <- subset(feesCollected, feesCollected$Revenue.Category == "03000025 - DCS Spay and Save Fees")
+summary(temp$Amount)
+temp1 <- as.data.frame(summary(as.factor(temp$Amount[temp$Fiscal.Year == "FY25"])))
+
+top_20_amounts <- temp |>
+  filter(Fiscal.Year == "FY25") |> 
+  count(Amount, sort = TRUE) |> # Count occurrences for each amount and sort descending
+  slice_head(n = 20)
+
+ggplot(temp, aes(Amount)) +
+  geom_histogram(aes(fill = Fiscal.Year), binwidth = 20) +
+  labs(title = "Distribution of Dollar Amount of Spay and Save Fees collected across 5 years")
+
+yearly_summary <- temp %>%
+  group_by(Fiscal.Year) %>%
+  summarise(
+    Total.Amount = sum(Amount, na.rm = TRUE),
+    Count = n(), 
+    Amount_per_transaction = Total.Amount/Count
+  )
+
+
+ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount)) +
+  geom_col() +
+  geom_text(aes(label = paste0("N = ", Count), vjust = -0.5)) +
+  labs(
+    title = "Total Spay and Save Fees Collected by Fiscal Year",
+    x = "Fiscal Year",
+    y = "Total Amount Collected ($)"
+  ) +
+  scale_y_continuous(labels = label_dollar()) 
+
+# 02200040 - DCS Impound Fees
+temp <- subset(feesCollected, feesCollected$Revenue.Category == "02200040 - DCS Impound Fees")
+summary(temp$Amount)
+temp1 <- as.data.frame(summary(as.factor(temp$Amount[temp$Fiscal.Year == "FY25"])))
+
+top_20_amounts <- temp |>
+  filter(Fiscal.Year == "FY25") |> 
+  count(Amount, sort = TRUE) |> # Count occurrences for each amount and sort descending
+  slice_head(n = 20)
+
+ggplot(temp, aes(Amount)) +
+  geom_histogram(aes(fill = Fiscal.Year), binwidth = 20) +
+  labs(title = "Distribution of Dollar Amount of Impound Fees collected across 5 years")
+
+yearly_summary <- temp %>%
+  group_by(Fiscal.Year) %>%
+  summarise(
+    Total.Amount = sum(Amount, na.rm = TRUE),
+    Count = n(), 
+    Amount_per_transaction = Total.Amount/Count
+  )
+
+ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount)) +
+  geom_col() +
+  geom_text(aes(label = paste0("N = ", Count), vjust = -0.5)) +
+  labs(
+    title = "Total Impound Fees Collected by Fiscal Year",
+    x = "Fiscal Year",
+    y = "Total Amount Collected ($)"
+  ) +
+  scale_y_continuous(labels = label_dollar()) 
+
+# 05200015 - DCS Dolly’s Fund Donations
+temp <- subset(feesCollected, feesCollected$Revenue.Category == "05200015 - DCS Dolly’s Fund Donations")
+summary(temp$Amount)
+temp1 <- as.data.frame(summary(as.factor(temp$Amount[temp$Fiscal.Year == "FY25"])))
+
+top_20_amounts <- temp |>
+  filter(Fiscal.Year == "FY25") |> 
+  count(Amount, sort = TRUE) |> # Count occurrences for each amount and sort descending
+  slice_head(n = 20)
+
+ggplot(temp, aes(Amount)) +
+  geom_histogram(aes(fill = Fiscal.Year), binwidth = 20) +
+  labs(title = "Distribution of Dollar Amount of Dolly's Fund Donations collected across 5 years")
+
+yearly_summary <- temp %>%
+  group_by(Fiscal.Year) %>%
+  summarise(
+    Total.Amount = sum(Amount, na.rm = TRUE),
+    Count = n(), 
+    Amount_per_transaction = Total.Amount/Count
+  )
+
+
+ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount)) +
+  geom_col() +
+  geom_text(aes(label = paste0("N = ", Count), vjust = -0.5)) +
+  labs(
+    title = "Total Dolly's Fund Donations Collected by Fiscal Year",
+    x = "Fiscal Year",
+    y = "Total Amount Collected ($)"
+  ) +
+  scale_y_continuous(labels = label_dollar()) 
+
+# 02200035 - DCS Board Fees
+temp <- subset(feesCollected, feesCollected$Revenue.Category == "02200035 - DCS Board Fees")
+summary(temp$Amount)
+temp1 <- as.data.frame(summary(as.factor(temp$Amount[temp$Fiscal.Year == "FY25"])))
+
+top_20_amounts <- temp |>
+  filter(Fiscal.Year == "FY25") |> 
+  count(Amount, sort = TRUE) |> # Count occurrences for each amount and sort descending
+  slice_head(n = 20)
+
+ggplot(temp, aes(Amount)) +
+  geom_histogram(aes(fill = Fiscal.Year), binwidth = 20) +
+  labs(title = "Distribution of Dollar Amount of Board Fees collected across 5 years")
+
+yearly_summary <- temp %>%
+  group_by(Fiscal.Year) %>%
+  summarise(
+    Total.Amount = sum(Amount, na.rm = TRUE),
+    Count = n(), 
+    Amount_per_transaction = Total.Amount/Count
+  )
+
+
+ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount)) +
+  geom_col() +
+  geom_text(aes(label = paste0("N = ", Count), vjust = -0.5)) +
+  labs(
+    title = "Total Board Fees Collected by Fiscal Year",
+    x = "Fiscal Year",
+    y = "Total Amount Collected ($)"
+  ) +
+  scale_y_continuous(labels = label_dollar()) 
+
+# 02200060 - DCS Potentially Dangerous Dog Classification
+temp <- subset(feesCollected, feesCollected$Revenue.Category == "02200060 - DCS Potentially Dangerous Dog Classification")
+summary(temp$Amount)
+temp1 <- as.data.frame(summary(as.factor(temp$Amount[temp$Fiscal.Year == "FY25"])))
+
+top_20_amounts <- temp |>
+  filter(Fiscal.Year == "FY25") |> 
+  count(Amount, sort = TRUE) |> # Count occurrences for each amount and sort descending
+  slice_head(n = 20)
+
+ggplot(temp, aes(Amount)) +
+  geom_histogram(aes(fill = Fiscal.Year), binwidth = 20) +
+  labs(title = "Distribution of Dollar Amount of Potentially Dangerous Dog Classification Fees collected across 5 years")
+
+yearly_summary <- temp %>%
+  group_by(Fiscal.Year) %>%
+  summarise(
+    Total.Amount = sum(Amount, na.rm = TRUE),
+    Count = n(), 
+    Amount_per_transaction = Total.Amount/Count
+  )
+
+
+ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount)) +
+  geom_col() +
+  geom_text(aes(label = paste0("N = ", Count), vjust = -0.5)) +
+  labs(
+    title = "Total Potentially Dangerous Dog Classification Fees Collected by Fiscal Year",
+    x = "Fiscal Year",
+    y = "Total Amount Collected ($)"
+  ) +
+  scale_y_continuous(labels = label_dollar()) 
+
+# 05200020 - DCS Adoption Outreach Donations
+temp <- subset(feesCollected, feesCollected$Revenue.Category == "05200020 - DCS Adoption Outreach Donations")
+summary(temp$Amount)
+temp1 <- as.data.frame(summary(as.factor(temp$Amount[temp$Fiscal.Year == "FY25"])))
+
+top_20_amounts <- temp |>
+  filter(Fiscal.Year == "FY25") |> 
+  count(Amount, sort = TRUE) |> # Count occurrences for each amount and sort descending
+  slice_head(n = 20)
+
+ggplot(temp, aes(Amount)) +
+  geom_histogram(aes(fill = Fiscal.Year), binwidth = 20) +
+  labs(title = "Distribution of Dollar Amount of Adoption Outreach Donations collected across 5 years")
+
+yearly_summary <- temp %>%
+  group_by(Fiscal.Year) %>%
+  summarise(
+    Total.Amount = sum(Amount, na.rm = TRUE),
+    Count = n(), 
+    Amount_per_transaction = Total.Amount/Count
+  )
+
+
+ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount)) +
+  geom_col() +
+  geom_text(aes(label = paste0("N = ", Count), vjust = -0.5)) +
+  labs(
+    title = "Total Adoption Outreach Donations Collected by Fiscal Year",
+    x = "Fiscal Year",
+    y = "Total Amount Collected ($)"
+  ) +
+  scale_y_continuous(labels = label_dollar()) 
+
+
+
+
+
+
 
 
 
