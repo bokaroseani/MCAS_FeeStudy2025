@@ -200,7 +200,7 @@ ggplot(temp, aes(Amount)) +
   coord_cartesian(xlim = c(-100, 500)) 
 
 yearly_summary <- temp %>%
-  group_by(Fiscal.Year) %>%
+  group_by(Fiscal.Year, Cost.Center) %>%
   summarise(
     Total.Amount = sum(Amount, na.rm = TRUE),
     Count = n(), 
@@ -239,7 +239,7 @@ ggplot(temp, aes(Amount)) +
   coord_cartesian(xlim = c(-100, 500)) 
 
 yearly_summary <- temp %>%
-  group_by(Fiscal.Year) %>%
+  group_by(Fiscal.Year, Cost.Center) %>%
   summarise(
     Total.Amount = sum(Amount, na.rm = TRUE),
     Count = n(), 
@@ -281,7 +281,7 @@ ggplot(temp, aes(Amount)) +
   coord_cartesian(xlim = c(-100, 500)) 
 
 yearly_summary <- temp %>%
-  group_by(Fiscal.Year) %>%
+  group_by(Fiscal.Year, Cost.Center) %>%
   summarise(
     Total.Amount = sum(Amount, na.rm = TRUE),
     Count = n(), 
@@ -321,7 +321,7 @@ ggplot(temp, aes(Amount)) +
   coord_cartesian(xlim = c(-100, 500)) 
 
 yearly_summary <- temp %>%
-  group_by(Fiscal.Year) %>%
+  group_by(Fiscal.Year, Cost.Center) %>%
   summarise(
     Total.Amount = sum(Amount, na.rm = TRUE),
     Count = n(), 
@@ -356,7 +356,7 @@ ggplot(temp, aes(Amount)) +
   labs(title = "Distribution of Dollar Amount of Fines from NOI's (Field) collected across 5 years")
 
 yearly_summary <- temp %>%
-  group_by(Fiscal.Year) %>%
+  group_by(Fiscal.Year, Cost.Center) %>%
   summarise(
     Total.Amount = sum(Amount, na.rm = TRUE),
     Count = n(), 
@@ -392,7 +392,7 @@ ggplot(temp, aes(Amount)) +
   labs(title = "Distribution of Dollar Amount of Fines from NOI's (Client) collected across 5 years")
 
 yearly_summary <- temp %>%
-  group_by(Fiscal.Year) %>%
+  group_by(Fiscal.Year, Cost.Center) %>%
   summarise(
     Total.Amount = sum(Amount, na.rm = TRUE),
     Count = n(), 
@@ -428,7 +428,7 @@ ggplot(temp, aes(Amount)) +
   labs(title = "Distribution of Dollar Amount of Euthanasia and Disposal Fees collected across 5 years")
 
 yearly_summary <- temp %>%
-  group_by(Fiscal.Year) %>%
+  group_by(Fiscal.Year, Cost.Center) %>%
   summarise(
     Total.Amount = sum(Amount, na.rm = TRUE),
     Count = n(), 
@@ -462,7 +462,7 @@ ggplot(temp, aes(Amount)) +
   labs(title = "Distribution of Dollar Amount of Owner Surrender Fees collected across 5 years")
 
 yearly_summary <- temp %>%
-  group_by(Fiscal.Year) %>%
+  group_by(Fiscal.Year, Cost.Center) %>%
   summarise(
     Total.Amount = sum(Amount, na.rm = TRUE),
     Count = n(), 
@@ -495,7 +495,7 @@ ggplot(temp, aes(Amount)) +
   labs(title = "Distribution of Dollar Amount of Vet Fees collected across 5 years")
 
 yearly_summary <- temp %>%
-  group_by(Fiscal.Year) %>%
+  group_by(Fiscal.Year, Cost.Center) %>%
   summarise(
     Total.Amount = sum(Amount, na.rm = TRUE),
     Count = n(), 
@@ -528,7 +528,7 @@ ggplot(temp, aes(Amount)) +
   labs(title = "Distribution of Dollar Amount of Appeal Fees, Appeal Board, Court Board Fees collected across 5 years")
 
 yearly_summary <- temp %>%
-  group_by(Fiscal.Year) %>%
+  group_by(Fiscal.Year, Cost.Center) %>%
   summarise(
     Total.Amount = sum(Amount, na.rm = TRUE),
     Count = n(), 
@@ -561,13 +561,12 @@ ggplot(temp, aes(Amount)) +
   labs(title = "Distribution of Dollar Amount of Spay and Save Fees collected across 5 years")
 
 yearly_summary <- temp %>%
-  group_by(Fiscal.Year) %>%
+  group_by(Fiscal.Year, Cost.Center) %>%
   summarise(
     Total.Amount = sum(Amount, na.rm = TRUE),
     Count = n(), 
     Amount_per_transaction = Total.Amount/Count
   )
-
 
 ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount)) +
   geom_col() +
@@ -594,7 +593,7 @@ ggplot(temp, aes(Amount)) +
   labs(title = "Distribution of Dollar Amount of Impound Fees collected across 5 years")
 
 yearly_summary <- temp %>%
-  group_by(Fiscal.Year) %>%
+  group_by(Fiscal.Year, Case.Center) %>%
   summarise(
     Total.Amount = sum(Amount, na.rm = TRUE),
     Count = n(), 
@@ -626,13 +625,12 @@ ggplot(temp, aes(Amount)) +
   labs(title = "Distribution of Dollar Amount of Dolly's Fund Donations collected across 5 years")
 
 yearly_summary <- temp %>%
-  group_by(Fiscal.Year) %>%
+  group_by(Fiscal.Year, Cost.Center) %>%
   summarise(
     Total.Amount = sum(Amount, na.rm = TRUE),
     Count = n(), 
     Amount_per_transaction = Total.Amount/Count
   )
-
 
 ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount)) +
   geom_col() +
@@ -659,13 +657,12 @@ ggplot(temp, aes(Amount)) +
   labs(title = "Distribution of Dollar Amount of Board Fees collected across 5 years")
 
 yearly_summary <- temp %>%
-  group_by(Fiscal.Year) %>%
+  group_by(Fiscal.Year, Cost.Center) %>%
   summarise(
     Total.Amount = sum(Amount, na.rm = TRUE),
     Count = n(), 
     Amount_per_transaction = Total.Amount/Count
   )
-
 
 ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount)) +
   geom_col() +
@@ -692,13 +689,12 @@ ggplot(temp, aes(Amount)) +
   labs(title = "Distribution of Dollar Amount of Potentially Dangerous Dog Classification Fees collected across 5 years")
 
 yearly_summary <- temp %>%
-  group_by(Fiscal.Year) %>%
+  group_by(Fiscal.Year, Cost.Center) %>%
   summarise(
     Total.Amount = sum(Amount, na.rm = TRUE),
     Count = n(), 
     Amount_per_transaction = Total.Amount/Count
   )
-
 
 ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount)) +
   geom_col() +
@@ -725,13 +721,12 @@ ggplot(temp, aes(Amount)) +
   labs(title = "Distribution of Dollar Amount of Adoption Outreach Donations collected across 5 years")
 
 yearly_summary <- temp %>%
-  group_by(Fiscal.Year) %>%
+  group_by(Fiscal.Year, Cost.Center) %>%
   summarise(
     Total.Amount = sum(Amount, na.rm = TRUE),
     Count = n(), 
     Amount_per_transaction = Total.Amount/Count
   )
-
 
 ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount)) +
   geom_col() +
@@ -742,6 +737,11 @@ ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount))
     y = "Total Amount Collected ($)"
   ) +
   scale_y_continuous(labels = label_dollar()) 
+
+
+
+
+
 
 
 
