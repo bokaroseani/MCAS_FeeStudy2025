@@ -74,13 +74,14 @@ all <- all %>%
   # Optional: Remove the intermediate helper column
   select(-FY_year)
 
-#save(all, file = "Z:/My Drive/Animal Services/MCAS Fee Study/ShelterBuddyData/all6yearsLicense.RData")
+#save(all, file = "Z:/My Drive/Animal Services/MCAS Fee Study/2025 Animal Services Financial Data/ShelterBuddyData/all6yearsLicense.RData")
 
 ###########################
 #### START FROM HERE ######
 ###########################
 
-load("Z:/My Drive/Animal Services/MCAS Fee Study/ShelterBuddyData/all6yearsLicense.RData")
+load("Z:/My Drive/Animal Services/MCAS Fee Study/2025 Animal Services Financial Data/ShelterBuddyData/all6yearsLicense.RData")
+
 
 all6<- subset(all, all$FY %in% c("FY2020", "FY2021", "FY2022", "FY2023", "FY2024", "FY2025"))
 
@@ -134,6 +135,17 @@ ggplot(temp2Cat, aes(x = Var2, y = Freq)) +
   coord_flip()
 
 
+temp2PDD <- subset(temp2, grepl("PDD", temp2$Var1))
+
+ggplot(temp2PDD, aes(x = Var2, y = Freq)) +
+  geom_bar(stat = "identity", position = "stack", fill = "skyblue") +
+  geom_text(aes(label = Freq), hjust = -0.25, size = 2.5, color = "black") +
+  facet_wrap(~ Var1) +
+  labs(title = "Number of Potentially Dangerous Dog licenses processed in the past 6 years",
+       x = "Fiscal Year",
+       y = "Number of licenses") +
+  coord_flip()
+
 # For each License.Type, find the total amount of fees collected each year and make a bar chart
 temp3 <- all6 |> 
   group_by(FY, License.Type) |> 
@@ -165,3 +177,89 @@ ggplot(temp3Cat, aes(x = FY, y = TotalFees)) +
        y = "Total amount") +
   coord_flip()+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+temp3PDD <- subset(temp3, grepl("PDD", temp3$License.Type))
+
+ggplot(temp3PDD, aes(x = FY, y = TotalFees)) +
+  geom_bar(stat = "identity", position = "stack", fill = "darkgreen") +
+  geom_text(aes(label = TotalFees), hjust = -0.25, size = 2.5, color = "black") +
+  facet_wrap(~ License.Type) +
+  scale_y_continuous(labels = dollar_format()) +
+  labs(title = "Annual revenue from Potentially Dangerous\nDog (PDD) licenses for the past 6 years",
+       x = "Fiscal Year",
+       y = "Total amount") +
+  coord_flip()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+###################################################################################################
+##################################   ADOPTIONS   ##################################################
+###################################################################################################
+file_path <- file.choose()
+
+if (grepl("\\.csv$", file_path, ignore.case = TRUE)) {
+  Adoptions <- read.csv(file_path, fileEncoding = "Windows-1252")
+}
+
+
+names(Adoptions)
+Adoptions$Adoption.Date
+summary(as.factor(Adoptions$Adoption.Amount))
+Adoptions$Adoption.Amount[Adoptions$Adoption.Amount == ""] <- NA
+
+
+Adoptions <- Adoptions |> 
+  mutate(
+    Adoption.Date = as.POSIXct(Adoption.Date, format = "%m/%d/%Y %H:%M"),
+    FY_year = if_else(month(Adoption.Date) >= 7, year(Adoption.Date) + 1, year(Adoption.Date)),
+    FY = paste0("FY", FY_year),
+    SpayNeuter.Status = `Spay...Neuter.Status` %>%
+      str_to_title() %>%
+      as.factor(),
+    Adoption.Amount1 = str_remove_all(as.character(Adoptions$Adoption.Amount), "[\\$,]") %>% as.numeric(),
+    Receipt.Total1 = str_remove_all(as.character(Adoptions$Receipt.Total), "[\\$,]") %>% as.numeric()
+  ) %>%
+  select(-FY_year) |> 
+  select(-Spay...Neuter.Status)
+    
+
+names(Adoptions)
+
+selection <- c("Person.DOB", 
+               "Spay...Neuter.Status", 
+               "Type",  
+               "Animal.Gender", 
+               "Adoption.Date", 
+               "Current.Status", 
+               "Current.Source", 
+               "Animal.DOB", 
+               "Age",  
+               "Region", 
+               "Adoption.Summary", 
+               "Incoming.Date", 
+               "Outgoing.SubStatus", 
+               "Adoption.Fee.Description", 
+               "Size", 
+               "Microchip", 
+               "Secondary.Microchip",
+               "Breed",
+               "Breed.Secondary", 
+               "Adoption.Counselors", 
+               "Return.Date", 
+               "Alt..Placement", 
+               "FY", 
+               "SpayNeuter.Status", 
+               "Adoption.Amount1", 
+               "Receipt.Total1")    
+
+Adoptions1 <- Adoptions[, selection]
+
+
+AdoptionFeePerYear <- Adoptions |> 
+  group_by(FY) |> 
+  summarise(TotalFees = sum(Receipt.Total1, na.rm = TRUE))
+
+
+ggplot(AdoptionFeePerYear, aes(x=FY, y=TotalFees)) +
+  geom_bar(stat = "identity") + 
+  geom_text(aes(label = TotalFees), vjust = -.25, size = 3.5, color = "black")
+

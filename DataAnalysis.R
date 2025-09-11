@@ -1,6 +1,7 @@
 library(dplyr)
 library(ggplot2)
 library(scales)
+library(readxl)
 
 # Choose a file using a dialog box
 file_path <- file.choose()
@@ -55,26 +56,89 @@ feesCollected$Amount <- gsub("^\\((.*)\\)$", "-\\1", feesCollected$Amount)
 # 3. Convert the cleaned character column to numeric and change the sign.
 feesCollected$Amount <- -1*as.numeric(feesCollected$Amount)
 
+levels(as.factor(feesCollected$Revenue.Category))
+
+feesCollected$Revenue.Category1 <- as.character(feesCollected$Revenue.Category)
+
+# Use sub() to replace the pattern with an empty string ""
+feesCollected$Revenue.Category1 <- sub(
+  pattern = "^[0-9]+\\s*-\\s*(DCS\\s)?", 
+  replacement = "", 
+  x = feesCollected$Revenue.Category1
+)
+feesCollected$Revenue.Category1 <- sub(
+  pattern = " - Issued By Client", 
+  replacement = "", 
+  x = feesCollected$Revenue.Category1
+)
+feesCollected$Revenue.Category1 <- sub(
+  pattern = " - Issued By Field", 
+  replacement = "", 
+  x = feesCollected$Revenue.Category1
+)
+levels(as.factor(feesCollected$Revenue.Category1))
+
+
+
+
+yearlyfee <- feesCollected |> 
+  group_by(Fiscal.Year) |> 
+  summarise(Total = sum(Amount, na.rm = TRUE))
+
+yearlyfee$TotalPlus <- yearlyfee$Total + 25000
+yearlyfee$TotalMinus <- yearlyfee$Total - 25000
+
 ### Remove the $25000 that was yearly paid out as "50220:Licenses & Fees" with the Header Memo saying "Revenue Transfer per Resolution 2010-098".
 ### $25,000 is a portion of the license fee revenue retained in the the restricted accounts, per County Resolution 2010-098. 
 feesCollected <- subset(feesCollected, feesCollected$Amount != -25000)
 
+onlyFees <- c("Adoption Fees",
+              "Appeal Fees, Appeal Board Fees, Court Board Fees", 
+              "Board Fees", 
+              "Cat Licenses", 
+              "Dog Licenses", 
+              "Euthanasia Fees, Disposal Fees",
+              "Facility Licenses",
+              "Fines From NOI's",
+              "Impound Fees",
+              "Owner Surrender Fees",
+              "Potentially Dangerous Dog Classification",
+              "Vet Fees")
+
+FeesAndFines <- subset(feesCollected, feesCollected$Revenue.Category1 %in% onlyFees)
+
+yearlyfee <- feesCollected |> 
+  group_by(Fiscal.Year) |> 
+  summarise(Total = sum(Amount, na.rm = TRUE))
+
+yearlyfee <- FeesAndFines |> 
+  group_by(Fiscal.Year) |> 
+  summarise(Total = sum(Amount, na.rm = TRUE))
+
 names(feesCollected)
 
 temp <- feesCollected %>%
-  group_by(Revenue.Category) %>%
+  group_by(Revenue.Category1) %>%
   summarise(
     Total.Amount = sum(Amount, na.rm = TRUE),
     Annual.Average.Revenue = round(Total.Amount/5,0),
   )
 
-temp <- subset(temp, temp$Revenue.Category!="02200005 - Licenses & Fees, General")
+
+  
+
+temp <- subset(temp, temp$Revenue.Category1!="Licenses & Fees, General")
+
+### Adoption Fee share of the total fee
+
+temp$Total.Amount[temp$Revenue.Category1 == "Adoption Fees"] / sum(temp$Total.Amount)
+
 s <- sum(temp$Total.Amount)
 temp$percentOfTotal <- round(temp$Total.Amount*100/s, 3)
 
 
-ggplot(temp, aes(x=reorder(Revenue.Category, Annual.Average.Revenue), y=Annual.Average.Revenue)) +
-  geom_col() +
+ggplot(temp, aes(x=reorder(Revenue.Category1, Annual.Average.Revenue), y=Annual.Average.Revenue)) +
+  geom_col(fill = "#008080") +
   geom_text(aes(label = paste0("$", Annual.Average.Revenue), hjust = -0.25), size = 3) +
   coord_flip() +
   scale_y_continuous(labels = label_dollar()) + 
@@ -86,6 +150,10 @@ ggplot(temp, aes(x=reorder(Revenue.Category, Annual.Average.Revenue), y=Annual.A
     caption = "Source: Workday Ledger report"
   )
 
+
+
+
+
 # How many board fees have been collected? Only 6 occassions in the last 5 years have we collected Board Fees totalling $1375. 
 # The highest Board Fees collected was $900 in FY24. That was the last time we collected Board Fees. 
 temp <- subset(feesCollected, feesCollected$Revenue.Category == "02200035 - DCS Board Fees")
@@ -93,19 +161,16 @@ temp <- subset(feesCollected, feesCollected$Revenue.Category == "02200035 - DCS 
 
 ### Select the top 6 fee categories
 
-selected <- c("02200025 - DCS Dog Licenses", 
-              "02200020 - DCS Cat Licenses", 
-              "02200050 - DCS Adoption Fees", 
-              "02200030 - DCS Facility Licenses",
-              "04400015 - DCS Fines From NOI's - Issued By Field",
-              "04400010 - DCS Fines From NOI's - Issued By Client", 
-              "02200070 - DCS Euthanasia Fees, Disposal Fees"
-#              "02200015 - DCS Owner Surrender Fees"
+selected <- c("Dog Licenses", 
+              "Cat Licenses", 
+              "Adoption Fees", 
+              "Facility Licenses",
+              "Fines From NOI's"
               )
 
 temp <- feesCollected
-temp$Revenue.Category[!temp$Revenue.Category %in% selected] <- "a) Other revenue sources" # Others include:
-                                                                                          # DCS Owner Surrender Fees
+temp$Revenue.Category1[!temp$Revenue.Category1 %in% selected] <- "a) Other revenue sources" # Others include:
+                                                                                          # Owner Surrender Fees
                                                                                           # Vet Fees
                                                                                           # Appeal Fees, Appeal Board Fees, Court Board Fees
                                                                                           # Spay and Save Fees
@@ -114,15 +179,14 @@ temp$Revenue.Category[!temp$Revenue.Category %in% selected] <- "a) Other revenue
                                                                                           # Board Fees
                                                                                           # Potentially Dangerous Dog Classification
                                                                                           # Adoption Outreach Donations
+                                                                                          # Euthanasia Fees, Disposal Fees
                                                                                     
-temp$Revenue.Category[temp$Revenue.Category == "02200025 - DCS Dog Licenses"] <- "h) Dog Licenses"
-temp$Revenue.Category[temp$Revenue.Category == "02200020 - DCS Cat Licenses"] <- "g) Cat Licenses"
-temp$Revenue.Category[temp$Revenue.Category == "02200050 - DCS Adoption Fees"] <- "f) Adoption Fees"
-temp$Revenue.Category[temp$Revenue.Category == "02200030 - DCS Facility Licenses"] <- "e) Facility Lincenses"
-temp$Revenue.Category[temp$Revenue.Category == "04400015 - DCS Fines From NOI's - Issued By Field"] <- "d) Fines from NOI Issued by Field"
-temp$Revenue.Category[temp$Revenue.Category == "04400010 - DCS Fines From NOI's - Issued By Client"] <- "c) Fines from NOI Issued by Client"
-temp$Revenue.Category[temp$Revenue.Category == "02200070 - DCS Euthanasia Fees, Disposal Fees"] <- "b) Euthanasia Fees, Disposal Fees"
-
+temp$Revenue.Category1[temp$Revenue.Category1 == "Dog Licenses"] <- "f) Dog Licenses"
+temp$Revenue.Category1[temp$Revenue.Category1 == "Cat Licenses"] <- "e) Cat Licenses"
+temp$Revenue.Category1[temp$Revenue.Category1 == "Adoption Fees"] <- "d) Adoption Fees"
+temp$Revenue.Category1[temp$Revenue.Category1 == "Fines From NOI's"] <- "c) Fines from NOIs"
+temp$Revenue.Category1[temp$Revenue.Category1 == "Facility Licenses"] <- "b) Facility Lincenses"
+levels(as.factor(temp$Revenue.Category1))
 
 #library(RColorBrewer)
 #display.brewer.all()
@@ -130,19 +194,24 @@ temp$Revenue.Category[temp$Revenue.Category == "02200070 - DCS Euthanasia Fees, 
 
 
 yearly_summary <- temp %>%
-  group_by(Fiscal.Year, Revenue.Category) %>%
+  group_by(Fiscal.Year, Revenue.Category1) %>%
   summarise(
     Total.Amount = sum(Amount, na.rm = TRUE)
   )
 
-yearly_summary$Revenue.Category <- as.factor(yearly_summary$Revenue.Category)
+yearly_summary$Revenue.Category1 <- as.factor(yearly_summary$Revenue.Category1)
+yearly_tot <- yearly_summary |> 
+  group_by(Fiscal.Year) |> 
+  summarise(total = sum(Total.Amount))
+
+AverageTotal<- mean(yearly_tot$total)
 
 
 ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount)) +
-  geom_col(aes(fill = Revenue.Category)) +
+  geom_col(aes(fill = Revenue.Category1)) +
   scale_fill_brewer(palette = "Paired") +
   labs(
-    title = "Total Fees Collected by Fiscal Year",
+    title = "MCAS Revenue by Fiscal Year",
     x = "Fiscal Year",
     y = "Total Amount Collected ($)"
   ) +
@@ -151,7 +220,7 @@ ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount))
 
 ### Questions for Erin and team:
 ### 1) What share of animals (dogs and cats only) that have been reunited with their owners paid for Boarding and what share paid other penalties?
-### 2) What share of animals (dogs and cats only) that have been reunited with their owners 
+### 2) What share of animals (dogs and cats only) that have been reunited with their owners did not have a valid license when found? 
 
 
 
