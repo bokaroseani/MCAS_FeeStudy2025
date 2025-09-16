@@ -255,11 +255,17 @@ Adoptions1 <- Adoptions[, selection]
 
 
 AdoptionFeePerYear <- Adoptions |> 
-  group_by(FY) |> 
+  group_by(FY, Type) |> 
   summarise(TotalFees = sum(Receipt.Total1, na.rm = TRUE))
+
+AdoptionFeePerYear <- subset(AdoptionFeePerYear, AdoptionFeePerYear$Type %in% c("Dog", "Cat", "Puppy", "Kitten"))
+AdoptionFeePerYear <- subset(AdoptionFeePerYear, !AdoptionFeePerYear$FY %in% c("FY2020"))
 
 
 ggplot(AdoptionFeePerYear, aes(x=FY, y=TotalFees)) +
-  geom_bar(stat = "identity") + 
-  geom_text(aes(label = TotalFees), vjust = -.25, size = 3.5, color = "black")
+  geom_bar(aes(fill = Type), stat = "identity") + 
+  geom_text(aes(label = TotalFees), position = position_stack(vjust = 0.09), size = 2.5, color = "black") +
+  labs(title = "Adoptions Fees by Fiscal Year", 
+       x = "FY", 
+       y = "Revenue from Adoption\nFees in USD")
 
