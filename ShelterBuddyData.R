@@ -117,7 +117,7 @@ temp2Dog <- subset(temp2, grepl("Dog", temp2$Var1))
 ggplot(temp2Dog, aes(x = Var2, y = Freq)) +
   geom_bar(stat = "identity", position = "stack", fill = "skyblue") +
   geom_text(aes(label = Freq), hjust = -0.25, size = 2.5, color = "black") +
-  facet_wrap(~ Var1) +
+  facet_wrap(~ Var1, ncol = 2) +
   labs(title = "Number of Dog licenses processed in the past 6 years",
        x = "Fiscal Year",
        y = "Number of licenses") +
@@ -128,7 +128,7 @@ temp2Cat <- subset(temp2, grepl("Cat", temp2$Var1))
 ggplot(temp2Cat, aes(x = Var2, y = Freq)) +
   geom_bar(stat = "identity", position = "stack", fill = "skyblue") +
   geom_text(aes(label = Freq), hjust = -0.25, size = 2.5, color = "black") +
-  facet_wrap(~ Var1) +
+  facet_wrap(~ Var1, ncol = 2) +
   labs(title = "Number of Cat licenses processed in the past 6 years",
        x = "Fiscal Year",
        y = "Number of licenses") +
@@ -140,7 +140,7 @@ temp2PDD <- subset(temp2, grepl("PDD", temp2$Var1))
 ggplot(temp2PDD, aes(x = Var2, y = Freq)) +
   geom_bar(stat = "identity", position = "stack", fill = "skyblue") +
   geom_text(aes(label = Freq), hjust = -0.25, size = 2.5, color = "black") +
-  facet_wrap(~ Var1) +
+  facet_wrap(~ Var1, ncol = 2) +
   labs(title = "Number of Potentially Dangerous Dog licenses processed in the past 6 years",
        x = "Fiscal Year",
        y = "Number of licenses") +
@@ -194,6 +194,14 @@ ggplot(temp3PDD, aes(x = FY, y = TotalFees)) +
 ###################################################################################################
 ##################################   ADOPTIONS   ##################################################
 ###################################################################################################
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(lubridate)
+library(stringr)
+library(tidyverse)
+
+
 file_path <- file.choose()
 
 if (grepl("\\.csv$", file_path, ignore.case = TRUE)) {
@@ -211,7 +219,7 @@ Adoptions <- Adoptions |>
   mutate(
     Adoption.Date = as.POSIXct(Adoption.Date, format = "%m/%d/%Y %H:%M"),
     FY_year = if_else(month(Adoption.Date) >= 7, year(Adoption.Date) + 1, year(Adoption.Date)),
-    FY = paste0("FY", FY_year),
+    FY = paste0("FY ", FY_year),
     SpayNeuter.Status = `Spay...Neuter.Status` %>%
       str_to_title() %>%
       as.factor(),
@@ -264,8 +272,158 @@ AdoptionFeePerYear <- subset(AdoptionFeePerYear, !AdoptionFeePerYear$FY %in% c("
 
 ggplot(AdoptionFeePerYear, aes(x=FY, y=TotalFees)) +
   geom_bar(aes(fill = Type), stat = "identity") + 
-  geom_text(aes(label = TotalFees), position = position_stack(vjust = 0.09), size = 2.5, color = "black") +
+  geom_text(
+    aes(label = dollar(TotalFees)), # Using dollar() for consistent formatting
+    # Adjust vjust to a value close to 1 to move the label to the top
+    position = position_stack(vjust = 0.095), 
+    size = 2.5,
+    color = "black"
+  ) +
+  scale_y_continuous(labels = label_dollar()) +
   labs(title = "Adoptions Fees by Fiscal Year", 
-       x = "FY", 
-       y = "Revenue from Adoption\nFees in USD")
+       x = "Fiscal Year", 
+       y = "Revenue from Adoption Fees")
+
+#########################################################################
+############## Range of Dog adoption fees ###############################
+#########################################################################
+
+# Install and load the necessary packages
+
+library(tidyverse)
+file_path <- file.choose()
+
+if (grepl("\\.csv$", file_path, ignore.case = TRUE)) {
+  data <- read.csv(file_path, fileEncoding = "Windows-1252")
+}
+
+
+data$Puppy.Adoption.Fees[data$Puppy.Adoption.Fees == "" | data$Puppy.Adoption.Fees == "n/a"] <- NA
+data$Cat.Adoption.Fees[data$Cat.Adoption.Fees == "" | data$Cat.Adoption.Fees == "n/a"] <- NA
+data$Kitten.Adoption.Fees[data$Kitten.Adoption.Fees == "" | data$Kitten.Adoption.Fees == "n/a"] <- NA
+
+data <- data %>%
+  mutate(across(everything(), ~str_replace_all(., "\\$", "")))
+data$Shelter.Name[data$Shelter.Name == "Multnomah County Animal Services"] <- "**Multnomah County Animal Services**"
+
+##### Dog Adoption Fee range
+
+data <- data %>%
+  mutate(
+    # Check if the cell contains a range (" - ")
+    is_range = str_detect(Dog.Adoption.Fees, fixed(" - ")),
+    
+    # Create dog.min: if it's a range, grab the first number; otherwise, NA
+    dog.min = if_else(is_range,
+                      as.numeric(str_extract(Dog.Adoption.Fees, "^[0-9]+\\.?[0-9]*")),
+                      NA_real_
+    ),
+    
+    # Create dog.max: if it's a range, grab the last number; otherwise, NA
+    dog.max = if_else(is_range,
+                      as.numeric(str_extract(Dog.Adoption.Fees, "[0-9]+\\.?[0-9]*$")),
+                      NA_real_
+    ),
+    
+    # Create dog.mid: if it's a range, calculate the midpoint; otherwise, use the value
+    dog.mid = if_else(is_range,
+                      (dog.min + dog.max) / 2,
+                      as.numeric(Dog.Adoption.Fees)
+    )
+  ) %>%
+  select(-is_range) # This removes the temporary helper column
+
+
+
+plot_data <- data %>%
+  # Sort Shelter factor levels by the dog.mid value
+  mutate(Shelter = fct_reorder(Shelter.Name, dog.mid)) %>%
+  # Reshape data from wide to long format
+  pivot_longer(
+    cols = c(dog.min, dog.max, dog.mid),
+    names_to = "fee_type",
+    values_to = "fee_value"
+  ) %>%
+  # Remove any rows where the fee_value is NA (for single-number shelters)
+  filter(!is.na(fee_value))
+
+# 3. CREATE THE PLOT
+ggplot(plot_data, aes(x = fee_value, y = Shelter, color = fee_type)) +
+  geom_point(size = 4) + # Add the points
+  scale_color_manual( # Manually set the colors
+    name = "Fee Type", # Legend title
+    labels = c("dog.max" = "Max", "dog.mid" = "Midpoint", "dog.min" = "Min"),
+    values = c("dog.max" = "red", "dog.mid" = "yellow", "dog.min" = "green")
+  ) +
+  labs( # Add titles and labels
+    title = "Dog Adoption Fee Range by Shelter",
+    subtitle = "Sorted by midpoint adoption fee",
+    x = "Adoption Fee (USD)",
+    y = "Shelter"
+  ) +
+  geom_line(aes(group = Shelter), color = "gray")+
+  theme_minimal() + # Use a clean theme
+  theme(panel.grid.major.y = element_blank()) # Remove horizontal grid lines
+
+
+
+##### Cat Adoption Fee range
+
+data <- data %>%
+  mutate(
+    # Check if the cell contains a range (" - ")
+    is_range = str_detect(Cat.Adoption.Fees, fixed(" - ")),
+    
+    # Create Cat.min: if it's a range, grab the first number; otherwise, NA
+    Cat.min = if_else(is_range,
+                      as.numeric(str_extract(Cat.Adoption.Fees, "^[0-9]+\\.?[0-9]*")),
+                      NA_real_
+    ),
+    
+    # Create Cat.max: if it's a range, grab the last number; otherwise, NA
+    Cat.max = if_else(is_range,
+                      as.numeric(str_extract(Cat.Adoption.Fees, "[0-9]+\\.?[0-9]*$")),
+                      NA_real_
+    ),
+    
+    # Create Cat.mid: if it's a range, calculate the midpoint; otherwise, use the value
+    Cat.mid = if_else(is_range,
+                      (Cat.min + Cat.max) / 2,
+                      as.numeric(Cat.Adoption.Fees)
+    )
+  ) %>%
+  select(-is_range) # This removes the temporary helper column
+
+data <- subset(data, !is.na(data$Cat.mid))
+
+plot_data <- data %>%
+  # Sort Shelter factor levels by the Cat.mid value
+  mutate(Shelter = fct_reorder(Shelter.Name, Cat.mid)) %>%
+  # Reshape data from wide to long format
+  pivot_longer(
+    cols = c(Cat.min, Cat.max, Cat.mid),
+    names_to = "fee_type",
+    values_to = "fee_value"
+  ) %>%
+  # Remove any rows where the fee_value is NA (for single-number shelters)
+  filter(!is.na(fee_value))
+
+# 3. CREATE THE PLOT
+ggplot(plot_data, aes(x = fee_value, y = Shelter, color = fee_type)) +
+  geom_point(size = 4) + # Add the points
+  scale_color_manual( # Manually set the colors
+    name = "Fee Type", # Legend title
+    labels = c("Cat.max" = "Max", "Cat.mid" = "Midpoint", "Cat.min" = "Min"),
+    values = c("Cat.max" = "red", "Cat.mid" = "yellow", "Cat.min" = "green")
+  ) +
+  labs( # Add titles and labels
+    title = "Cat Adoption Fee Range by Shelter",
+    subtitle = "Sorted by midpoint adoption fee",
+    x = "Adoption Fee (USD)",
+    y = "Shelter"
+  ) +
+  geom_line(aes(group = Shelter), color = "gray")+
+  theme_minimal() + # Use a clean theme
+  theme(panel.grid.major.y = element_blank()) # Remove horizontal grid lines
+
 

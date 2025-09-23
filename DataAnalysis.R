@@ -2,6 +2,7 @@ library(dplyr)
 library(ggplot2)
 library(scales)
 library(readxl)
+library(forcats)
 
 # Choose a file using a dialog box
 file_path <- file.choose()
@@ -29,7 +30,9 @@ if (grepl("\\.csv$", file_path, ignore.case = TRUE)) {
 } else {
   print("Unsupported file type or no file selected.")
 }
+summary(as.factor(feesCollected$Revenue.Category))
 
+feesCollected$Revenue.Category[feesCollected$Revenue.Category == "02200055 - DCS Appeal Fees, Appeal Board Fees, Court Board Fees"] <- "02200055 - DCS Appeal Fees"
 
 feesCollected <- feesCollected[, !sapply(feesCollected, function(x) all(is.na(x)))]
 feesCollected <- feesCollected[, !grepl("Tririga", names(feesCollected))]
@@ -78,7 +81,12 @@ feesCollected$Revenue.Category1 <- sub(
 )
 levels(as.factor(feesCollected$Revenue.Category1))
 
+feesCollected <- feesCollected %>%
+  mutate(Fiscal.Year = fct_relabel(Fiscal.Year, ~ sub("FY", "FY 20", .x)))
 
+#### Remove Donations
+feesCollected <- subset(feesCollected, !grepl("Adoption Outreach Donations", feesCollected$Revenue.Category1))
+feesCollected <- subset(feesCollected, !grepl("Dolly’s Fund Donations", feesCollected$Revenue.Category1))
 
 
 yearlyfee <- feesCollected |> 
@@ -93,7 +101,7 @@ yearlyfee$TotalMinus <- yearlyfee$Total - 25000
 feesCollected <- subset(feesCollected, feesCollected$Amount != -25000)
 
 onlyFees <- c("Adoption Fees",
-              "Appeal Fees, Appeal Board Fees, Court Board Fees", 
+              "Appeal Fees", 
               "Board Fees", 
               "Cat Licenses", 
               "Dog Licenses", 
@@ -124,6 +132,7 @@ temp <- feesCollected %>%
     Annual.Average.Revenue = round(Total.Amount/5,0),
   )
 
+summary(as.factor(temp$Revenue.Category1))
 
   
 
@@ -144,12 +153,30 @@ ggplot(temp, aes(x=reorder(Revenue.Category1, Annual.Average.Revenue), y=Annual.
   scale_y_continuous(labels = label_dollar()) + 
   labs(
     title = "Annual average revenue from various sources",
-    subtitle = "Average calculated based on revenue from FY21 to FY25",
+    subtitle = "Average calculated based on revenue from FY 2021 to FY 2025",
     x = "Revenue Source",
     y = "Annual average revenue",
     caption = "Source: Workday Ledger report"
   )
 
+max_revenue <- max(temp$Annual.Average.Revenue)
+
+ggplot(temp, aes(x=reorder(Revenue.Category1, Annual.Average.Revenue), y=Annual.Average.Revenue)) +
+  geom_col(fill = "#008080") +
+  geom_text(aes(label = paste0("$", format(Annual.Average.Revenue, big.mark = ",")),
+                hjust = ifelse(Annual.Average.Revenue == max_revenue, 1.1, -0.25),
+                colour = ifelse(Annual.Average.Revenue == max_revenue, 'white', 'black')),
+            size = 3) +
+  coord_flip() +
+  scale_y_continuous(labels = label_dollar()) +
+  scale_colour_identity() +
+  labs(
+    title = "Annual average revenue from various sources",
+    subtitle = "Average calculated based on revenue from FY 2021 to FY 2025",
+    x = "Revenue Source",
+    y = "Annual average revenue",
+    caption = "Source: Workday Ledger report"
+  )
 
 
 
@@ -163,13 +190,11 @@ temp <- subset(feesCollected, feesCollected$Revenue.Category == "02200035 - DCS 
 
 selected <- c("Dog Licenses", 
               "Cat Licenses", 
-              "Adoption Fees", 
-              "Facility Licenses",
-              "Fines From NOI's"
+              "Adoption Fees"
               )
 
 temp <- feesCollected
-temp$Revenue.Category1[!temp$Revenue.Category1 %in% selected] <- "a) Other revenue sources" # Others include:
+temp$Revenue.Category1[!temp$Revenue.Category1 %in% selected] <- "a) Other Fees and Fines" # Others include:
                                                                                           # Owner Surrender Fees
                                                                                           # Vet Fees
                                                                                           # Appeal Fees, Appeal Board Fees, Court Board Fees
@@ -181,11 +206,10 @@ temp$Revenue.Category1[!temp$Revenue.Category1 %in% selected] <- "a) Other reven
                                                                                           # Adoption Outreach Donations
                                                                                           # Euthanasia Fees, Disposal Fees
                                                                                     
-temp$Revenue.Category1[temp$Revenue.Category1 == "Dog Licenses"] <- "f) Dog Licenses"
-temp$Revenue.Category1[temp$Revenue.Category1 == "Cat Licenses"] <- "e) Cat Licenses"
-temp$Revenue.Category1[temp$Revenue.Category1 == "Adoption Fees"] <- "d) Adoption Fees"
-temp$Revenue.Category1[temp$Revenue.Category1 == "Fines From NOI's"] <- "c) Fines from NOIs"
-temp$Revenue.Category1[temp$Revenue.Category1 == "Facility Licenses"] <- "b) Facility Lincenses"
+temp$Revenue.Category1[temp$Revenue.Category1 == "Dog Licenses"] <- "d) Dog Licenses"
+temp$Revenue.Category1[temp$Revenue.Category1 == "Cat Licenses"] <- "c) Cat Licenses"
+temp$Revenue.Category1[temp$Revenue.Category1 == "Adoption Fees"] <- "b) Adoption Fees"
+
 levels(as.factor(temp$Revenue.Category1))
 
 #library(RColorBrewer)
@@ -205,18 +229,77 @@ yearly_tot <- yearly_summary |>
   summarise(total = sum(Total.Amount))
 
 AverageTotal<- mean(yearly_tot$total)
-
+yearly_totals <- yearly_summary %>%
+  group_by(Fiscal.Year) %>%
+  summarize(Total.Amount = sum(Total.Amount))
 
 ggplot(data = yearly_summary, aes(x = as.factor(Fiscal.Year), y = Total.Amount)) +
   geom_col(aes(fill = Revenue.Category1)) +
   scale_fill_brewer(palette = "Paired") +
   labs(
-    title = "MCAS Revenue by Fiscal Year",
+    title = "MCAS Fee Revenue by Fiscal Year",
     x = "Fiscal Year",
     y = "Total Amount Collected ($)"
   ) +
-  scale_y_continuous(labels = label_dollar()) 
+  scale_y_continuous(labels = label_dollar()) +
+  geom_text(data = yearly_totals, aes(label = dollar(Total.Amount), y = Total.Amount), vjust = -0.5, size = 3.5)
 
+
+
+############################################################################
+yearly_percentages <- temp %>%
+  # First, find the total for each category within each year
+  group_by(Fiscal.Year, Revenue.Category1) %>%
+  summarise(
+    Category.Amount = sum(Amount, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+  # Now, group by only the year to calculate percentages
+  group_by(Fiscal.Year) %>%
+  mutate(
+    # Calculate the percentage each category contributes to the yearly total
+    Percentage = Category.Amount / sum(Category.Amount)
+  ) %>%
+  # It's good practice to ungroup after calculations
+  ungroup()
+
+
+# 3. Build the 100% stacked bar plot
+ggplot(yearly_percentages, aes(x = as.factor(Fiscal.Year), y = Percentage, fill = Revenue.Category1)) +
+  # Layer 1: The 100% stacked columns
+  geom_col() +
+  
+  # Layer 2: Text labels inside each segment
+  # We use position_stack to place labels in the middle of each segment
+  geom_text(
+    aes(label = percent(Percentage, accuracy = 1)), # Format label as a percentage
+    position = position_stack(vjust = 0.5), # Center the label vertically in the segment
+    color = "white", # Use white text for better contrast
+    size = 3.5
+  ) +
+  
+  # --- Formatting and Labels ---
+  
+  # Use a color palette for the bar fills
+  scale_fill_brewer(palette = "Paired") +
+  
+  # Format the Y-axis to show percentage labels (0%, 25%, etc.)
+  scale_y_continuous(labels = label_percent()) +
+  
+  # Add titles and axis labels
+  labs(
+    title = "MCAS Fee Revenue Share by Fiscal Year",
+    x = "Fiscal Year",
+    y = "Share of Total Revenue",
+    fill = "Revenue Category"
+  ) +
+  
+  # Apply a clean theme
+  theme_minimal() +
+  
+  # Optional: Remove grid lines for a cleaner look
+  theme(panel.grid = element_blank())
+###################################################################################
 
 ### Questions for Erin and team:
 ### 1) What share of animals (dogs and cats only) that have been reunited with their owners paid for Boarding and what share paid other penalties?
